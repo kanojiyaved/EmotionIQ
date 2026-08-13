@@ -1,3 +1,4 @@
+from pathlib import Path
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.preprocessing.text import Tokenizer
 from fastapi.staticfiles import StaticFiles
@@ -10,6 +11,7 @@ from keras.models import load_model
 import numpy as np
 import pickle
 import re
+import os
 
 
 
@@ -22,11 +24,13 @@ C. Max Sequence Length
 D. Emotion Labels
 E. Emotion emojis
 """
+BASE_DIR = Path(__file__).resolve().parent
+
 #A. Model Path (BiGRU)
-model_path = "Artifacts/BiGru_model.keras"
+model_path = str(BASE_DIR / "Artifacts" / "BiGru_model.keras")
 
 #B. Tokenizer Path
-tokenizer_path = "Artifacts/tokenizer.pkl"
+tokenizer_path = str(BASE_DIR / "Artifacts" / "tokenizer.pkl")
 
 #C. Max Sequence Length
 max_sequence_length = 50
@@ -124,7 +128,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount('/static', StaticFiles(directory="static"), name="static")
+static_dir = BASE_DIR / "static"
+app.mount('/static', StaticFiles(directory=str(static_dir)), name="static")
 
 
 
@@ -138,7 +143,7 @@ C. Predict Emotion Endpoint ('/predict')
 #A. Server UI at homepage ('/')
 @app.get('/', include_in_schema=False)
 def server_ui():
-    return FileResponse('static/index.html')
+    return FileResponse(static_dir / 'index.html')
 
 #B. Health Check Endpoint ('/health')
 @app.get('/health', response_model=HealthResponse)
@@ -191,5 +196,6 @@ def predict_emotion(text_input: TextInput):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    port = int(os.environ.get("PORT", "8000"))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
 

@@ -1017,7 +1017,8 @@
         let count = 0;
 
         const getApiUrl = (endpoint) => {
-            if (window.location.protocol.startsWith('http') && window.location.port === '8000') {
+            const isLocalDev = ['localhost', '127.0.0.1', '0.0.0.0'].includes(window.location.hostname);
+            if (!isLocalDev) {
                 return endpoint;
             }
             return `http://127.0.0.1:8000${endpoint}`;
